@@ -1,0 +1,37 @@
+# src/schemas/telecom_schema.yml
+file_type: csv
+delimiter: ','
+has_header: true
+columns:
+  - name: customerID
+    type: str
+    nullable: false
+  - name: gender
+    type: str
+    allowed_values: ["Male", "Female"]
+  - name: SeniorCitizen
+    type: int
+    allowed_values: [0, 1]
+  - name: Partner
+    type: str
+    allowed_values: ["Yes", "No"]
+  - name: Dependents
+    type: str
+    allowed_values: ["Yes", "No"]
+  - name: tenure
+    type: int
+    min_value: 0
+  - name: PhoneService
+    type: str
+    allowed_values: ["Yes", "No"]
+  - name: MonthlyCharges
+    type: float
+    min_value: 0
+  - name: TotalCharges
+    type: any # Can be float or empty string
+    nullable: true
+  - name: Churn
+    type: str
+    allowed_values: ["Yes", "No"]
+# Note: This is a subset of all available columns for simplicity.
+# We will only load and validate these specified columns. 

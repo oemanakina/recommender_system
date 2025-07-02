@@ -1,0 +1,21 @@
+# src/schemas/language_schema.yml
+file_type: csv
+delimiter: ','
+has_header: false
+num_columns: 2
+columns:
+  - name: score
+    type: str  # Kept as string to handle '26', '65' at the end before special parsing
+    nullable: false
+  - name: skills
+    type: str
+    nullable: false
+special_rows:
+  - index: -2 # Second to last row
+    columns:
+      - name: points_total
+        value_contains: "POINTS"
+  - index: -1 # Last row
+    columns:
+      - name: percentage_total
+        value_contains: "%" 

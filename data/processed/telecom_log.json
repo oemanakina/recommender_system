@@ -1,0 +1,7 @@
+{
+    "input_file": "data/telecom_churn.csv",
+    "input_hash": "88be4b93fbe0cc83421af1c503794c97c342eca914c1576db7c276e61d61358a",
+    "processed_file": "data/processed/telecom_processed.parquet",
+    "row_count": 7043,
+    "schema": "src/schemas/telecom_schema.yml"
+}
