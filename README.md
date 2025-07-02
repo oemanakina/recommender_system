@@ -34,9 +34,9 @@ The repository is organized into a modular structure to ensure clarity and scala
 
 ---
 
-## Current Progress (Phase 2 Complete)
+## Current Progress (Phase 3 Complete)
 
-We have successfully implemented the first three phases of our development plan:
+We have successfully implemented the first four phases of our development plan:
 
 ### ✅ Phase 0: Project Scaffolding
 The project structure has been established, separating concerns like source code, data, and documentation. The original script has been moved to the `legacy` folder for historical reference.
@@ -64,6 +64,11 @@ A flexible model training pipeline has been implemented in `src/train.py`. This 
 A recommendation engine has been implemented in `src/recommend.py`. This script uses the trained models and business logic to translate raw predictions into actionable advice:
 - **Language:** It ingests a student's raw score file, analyzes their errors to identify skill weaknesses, and recommends the top 3 most relevant practice exercise sets.
 - **Telecom:** It takes a customer's data, predicts their churn probability using the trained model, and maps that probability to a specific retention strategy (e.g., "Low Risk," "Medium Risk," "High Risk").
+
+### ✅ Phase 4: Programmatic Interfaces (API & CLI)
+The project's models and recommendation logic are now accessible through robust programmatic interfaces:
+- **REST API:** A web server (`src/api.py`) exposes the logic via `POST` endpoints (`/predict/language` and `/predict/telecom`), allowing for real-time integration with other applications.
+- **Batch CLI:** The command-line tool (`src/recommend.py`) has been enhanced to support batch processing for the telecom domain, allowing it to process an entire CSV of customers at once.
 
 ---
 
@@ -110,30 +115,51 @@ python src/train.py language
 python src/train.py telecom
 ```
 
-### 4. Run the Recommendation Engine (Phase 3)
+### 4. Run the Recommendation Engine (CLI)
 
-After the models are trained, you can use the `recommend.py` script to generate advice.
+The command-line interface in `src/recommend.py` can be used for single predictions or batch processing.
 
-**For the Language Domain:**
+**Language Domain (Single Prediction):**
 Provide the path to a student's score file.
-
 ```bash
 python src/recommend.py language data/sample_score_new.csv
 ```
 
-**For the Telecom Domain:**
+**Telecom Domain (Single Prediction):**
 Provide a single customer's data as a JSON string.
-
 ```bash
-python src/recommend.py telecom '{"gender": "Female", "SeniorCitizen": 0, "Partner": "No", "Dependents": "No", "tenure": 1, "PhoneService": "No", "MonthlyCharges": 29.85, "TotalCharges": 29.85}'
+python src/recommend.py telecom '{"gender": "Female", "SeniorCitizen": 0, "Partner": "No", "Dependents": "No", "tenure": 1, "PhoneService": "No", "MonthlyCharges": 29.85, "TotalCharges": "29.85"}'
 ```
 
-After running these commands, you will have a fully trained model and all associated metrics for both domains, ready for the next phase of development.
+**Telecom Domain (Batch Processing):**
+Provide the path to a CSV file of customers. A new file with recommendations will be created.
+```bash
+python src/recommend.py telecom data/telecom_churn.csv
+```
 
+### 5. Run the API Server
+
+To use the API, first start the web server. **Leave this terminal running.**
+
+```bash
+# Make sure your virtual environment is active first:
+# source venv/bin/activate
+
+uvicorn src.api:app --reload
+```
+The server will be running at `http://127.0.0.1:8000`.
+
+In a **new terminal**, you can now send requests to the API, for example:
+```bash
+# Example for the Telecom endpoint
+curl -X POST "http://127.0.0.1:8000/predict/telecom" \
+-H "Content-Type: application/json" \
+-d '{"gender": "Female", "SeniorCitizen": 0, "Partner": "No", "Dependents": "No", "tenure": 1, "PhoneService": "No", "MonthlyCharges": 29.85, "TotalCharges": "29.85"}'
+```
 ---
 
 ## Next Steps
 
 The next phases of the project will focus on building on top of these trained models:
-- **Phase 4:** Expose the models via a REST API and a batch-processing CLI.
-- **Phase 5 & 6:** Build an interactive dashboard and create final presentation artifacts. 
+- **Phase 5:** Build an interactive dashboard for non-technical stakeholders.
+- **Phase 6:** Create final narrative artifacts, including a walkthrough notebook and presentation slides. 

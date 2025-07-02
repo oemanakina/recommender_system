@@ -97,6 +97,10 @@ def recommend_telecom_retention(customer_data):
     # Convert single customer dict to DataFrame for prediction
     df = pd.DataFrame([customer_data])
     
+    # FIX: Ensure 'TotalCharges' is numeric, coercing errors to NaN
+    # This mirrors the cleaning step from the training script.
+    df['TotalCharges'] = pd.to_numeric(df['TotalCharges'], errors='coerce')
+    
     # Get probability of churn (class 1)
     churn_prob = pipeline.predict_proba(df)[0][1]
     
@@ -132,10 +136,43 @@ def main(domain, input_data):
     print(recommendation)
     print("---------------------------\n")
 
+def batch_recommend_telecom(input_path):
+    """Generates churn recommendations for a CSV of customers."""
+    logging.info(f"Starting batch recommendation for telecom data at {input_path}")
+    
+    try:
+        df = pd.read_csv(input_path)
+    except FileNotFoundError:
+        logging.error(f"Input file not found: {input_path}")
+        return
+
+    # Convert DataFrame rows to dictionaries for processing
+    customer_data_list = df.to_dict(orient='records')
+    recommendations = []
+    
+    for customer_data in customer_data_list:
+        # The recommendation string includes the probability and advice
+        full_recommendation = recommend_telecom_retention(customer_data)
+        recommendations.append(full_recommendation)
+        
+    df['recommendation'] = recommendations
+    
+    # Save results to a new file
+    output_path = Path(input_path).parent / f"{Path(input_path).stem}_with_recommendations.csv"
+    df.to_csv(output_path, index=False)
+    
+    logging.info(f"Batch processing complete. Results saved to: {output_path}")
+    print(f"\nBatch processing complete. See results in: {output_path}")
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Recommendation Engine CLI")
     parser.add_argument("domain", choices=["language", "telecom"], help="The domain to generate a recommendation for.")
-    parser.add_argument("input", type=str, help="Input for the recommendation. For 'language', this is a file path to a student's scores. For 'telecom', this is a JSON string of customer data.")
+    parser.add_argument("input", type=str, help="Input for the recommendation. For 'language', a file path. For 'telecom', a JSON string or a file path to a CSV for batch processing.")
     
     args = parser.parse_args()
-    main(args.domain, args.input) 
+    
+    # Check for telecom batch processing
+    if args.domain == "telecom" and args.input.endswith(".csv"):
+        batch_recommend_telecom(args.input)
+    else:
+        main(args.domain, args.input) 

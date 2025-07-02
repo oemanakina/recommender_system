@@ -3,3 +3,5 @@ pyarrow
 PyYAML
 scikit-learn
 joblib
+fastapi
+uvicorn[standard]
