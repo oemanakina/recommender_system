@@ -60,6 +60,11 @@ A flexible model training pipeline has been implemented in `src/train.py`. This 
 - Evaluates the model on a test set and saves the performance metrics (Precision, Recall, F1) to a JSON file.
 - Saves the entire trained model pipeline as a `.joblib` file in the `artifacts/` directory.
 
+### ✅ Phase 3: Rule-Based Recommendation Engine
+A recommendation engine has been implemented in `src/recommend.py`. This script uses the trained models and business logic to translate raw predictions into actionable advice:
+- **Language:** It ingests a student's raw score file, analyzes their errors to identify skill weaknesses, and recommends the top 3 most relevant practice exercise sets.
+- **Telecom:** It takes a customer's data, predicts their churn probability using the trained model, and maps that probability to a specific retention strategy (e.g., "Low Risk," "Medium Risk," "High Risk").
+
 ---
 
 ## How to Run the Project
@@ -105,6 +110,24 @@ python src/train.py language
 python src/train.py telecom
 ```
 
+### 4. Run the Recommendation Engine (Phase 3)
+
+After the models are trained, you can use the `recommend.py` script to generate advice.
+
+**For the Language Domain:**
+Provide the path to a student's score file.
+
+```bash
+python src/recommend.py language data/sample_score_new.csv
+```
+
+**For the Telecom Domain:**
+Provide a single customer's data as a JSON string.
+
+```bash
+python src/recommend.py telecom '{"gender": "Female", "SeniorCitizen": 0, "Partner": "No", "Dependents": "No", "tenure": 1, "PhoneService": "No", "MonthlyCharges": 29.85, "TotalCharges": 29.85}'
+```
+
 After running these commands, you will have a fully trained model and all associated metrics for both domains, ready for the next phase of development.
 
 ---
@@ -112,6 +135,5 @@ After running these commands, you will have a fully trained model and all associ
 ## Next Steps
 
 The next phases of the project will focus on building on top of these trained models:
-- **Phase 3:** Implement a rule-based engine to translate model predictions into actionable recommendations.
 - **Phase 4:** Expose the models via a REST API and a batch-processing CLI.
 - **Phase 5 & 6:** Build an interactive dashboard and create final presentation artifacts. 
