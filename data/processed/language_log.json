@@ -1,0 +1,7 @@
+{
+    "input_file": "data/sample_score_new.csv",
+    "input_hash": "46907bf38a7c537b7969f6ac180134b08559fd18463d8b2bc51782163a07e477",
+    "processed_file": "data/processed/language_processed.parquet",
+    "row_count": 22,
+    "schema": "src/schemas/language_schema.yml"
+}

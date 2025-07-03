@@ -15,14 +15,12 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 LEGEND = {"V": "Vocabulary", "A": "Word Agreement", "S": "Spelling", "Gen": "Gender", "Per": "Persons", "G": "Grammar", "T": "Tenses", "Past": "Past Tenses", "Fut": "Future Tenses", "M": "Modes", "Sub": "Subjunctive Mode", "Hyp": "Hypothetical Mode", "Pro": "Professional Communication", "Pron": "Pronouns", "Prep": "Prepositions"}
 MISTAKES_PER_SKILL = [4, 1, 4, 2, 2, 11, 7, 3, 2, 3, 1, 1, 4, 2, 1]
 
-def _analyze_language_errors(student_data_path):
-    """Analyzes a student's score file to find their weakest skills."""
+def _analyze_language_errors(score_data_rows):
+    """Analyzes a student's score data (as a list of rows) to find their weakest skills."""
     student_mistakes = {key: 0 for key in LEGEND}
     skill_weights = {key: 0 for key in LEGEND}
     
-    with open(student_data_path, "r") as f:
-        reader = csv.reader(f)
-        results = list(reader)
+    results = score_data_rows
 
     # There are 20 questions in the test format
     for i in range(20):
@@ -63,9 +61,9 @@ def _find_best_exercises(ideal_set, exercises_path="data/exercises.csv"):
     top_3_indices = sorted(matched, key=matched.get, reverse=True)[:3]
     return {index: exercises[index] for index in top_3_indices}
 
-def recommend_language_exercises(student_data_path):
+def recommend_language_exercises(score_data_rows):
     """Generates a full recommendation report for the language learning domain."""
-    ideal_set, skill_weights = _analyze_language_errors(student_data_path)
+    ideal_set, skill_weights = _analyze_language_errors(score_data_rows)
     
     skills_to_practice = [key for key, value in skill_weights.items() if value >= 0.4]
 
@@ -120,7 +118,14 @@ def main(domain, input_data):
     logging.info(f"Generating recommendation for domain: {domain}")
     
     if domain == "language":
-        recommendation = recommend_language_exercises(input_data)
+        try:
+            with open(input_data, "r") as f:
+                reader = csv.reader(f)
+                score_rows = list(reader)
+            recommendation = recommend_language_exercises(score_rows)
+        except FileNotFoundError:
+            logging.error(f"Language score file not found: {input_data}")
+            recommendation = "Error: Input file not found."
     elif domain == "telecom":
         # For CLI, we expect a JSON string as input
         try:

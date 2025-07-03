@@ -34,9 +34,9 @@ The repository is organized into a modular structure to ensure clarity and scala
 
 ---
 
-## Current Progress (Phase 3 Complete)
+## Current Progress (Phase 5 Complete)
 
-We have successfully implemented the first four phases of our development plan:
+We have successfully implemented the first six phases of our development plan:
 
 ### ✅ Phase 0: Project Scaffolding
 The project structure has been established, separating concerns like source code, data, and documentation. The original script has been moved to the `legacy` folder for historical reference.
@@ -51,24 +51,18 @@ A robust data ingestion pipeline has been created using `src/data_loader.py`. Th
 ### ✅ Phase 2: Feature Engineering & Baseline Models
 A flexible model training pipeline has been implemented in `src/train.py`. This script:
 - Loads the processed data for a specified domain (language or telecom).
-- Applies a domain-specific feature engineering pipeline:
-    - **Language:** `TfidfVectorizer` for text-based skills.
-    - **Telecom:** `ColumnTransformer` to handle both numerical and categorical features.
-- Trains a baseline classifier:
-    - **Language:** `MultinomialNB`.
-    - **Telecom:** `LogisticRegression`.
-- Evaluates the model on a test set and saves the performance metrics (Precision, Recall, F1) to a JSON file.
-- Saves the entire trained model pipeline as a `.joblib` file in the `artifacts/` directory.
+- Applies a domain-specific feature engineering pipeline.
+- Trains a baseline classifier.
+- Evaluates the model on a test set and saves the performance metrics and the trained model to the `artifacts/` directory.
 
 ### ✅ Phase 3: Rule-Based Recommendation Engine
-A recommendation engine has been implemented in `src/recommend.py`. This script uses the trained models and business logic to translate raw predictions into actionable advice:
-- **Language:** It ingests a student's raw score file, analyzes their errors to identify skill weaknesses, and recommends the top 3 most relevant practice exercise sets.
-- **Telecom:** It takes a customer's data, predicts their churn probability using the trained model, and maps that probability to a specific retention strategy (e.g., "Low Risk," "Medium Risk," "High Risk").
+A recommendation engine has been implemented in `src/recommend.py`. This script uses the trained models and business logic to translate raw predictions into actionable advice for both domains.
 
 ### ✅ Phase 4: Programmatic Interfaces (API & CLI)
-The project's models and recommendation logic are now accessible through robust programmatic interfaces:
-- **REST API:** A web server (`src/api.py`) exposes the logic via `POST` endpoints (`/predict/language` and `/predict/telecom`), allowing for real-time integration with other applications.
-- **Batch CLI:** The command-line tool (`src/recommend.py`) has been enhanced to support batch processing for the telecom domain, allowing it to process an entire CSV of customers at once.
+The project's models and recommendation logic are now accessible through robust programmatic interfaces, including a REST API for real-time integration and an enhanced CLI for batch processing.
+
+### ✅ Phase 5: Interactive Dashboard
+An interactive web dashboard has been developed in `dashboard/app.py` using Streamlit. This provides a user-friendly interface for non-technical stakeholders to receive model-driven recommendations by communicating with the backend API.
 
 ---
 
@@ -78,11 +72,13 @@ To get the project up and running and reproduce the results so far, follow these
 
 ### 1. Setup Environment
 
-First, clone the repository and set up a Python virtual environment.
+First, create and activate a Python virtual environment.
 
 ```bash
-# It is recommended to use a virtual environment
-python -m venv venv
+# Create the environment (only needs to be done once)
+python3 -m venv venv
+
+# Activate the environment (needs to be done for each new terminal session)
 source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
 ```
 
@@ -91,75 +87,59 @@ Next, install all the required dependencies:
 pip install -r requirements.txt
 ```
 
-### 2. Run the Data Pipeline (Phase 1)
+### 2. Run the Data Pipeline
 
-Execute the data loader script for both the language and telecom domains. This will validate the raw data and create the processed Parquet files in `data/processed/`.
+Execute the data loader script for both domains.
 
 ```bash
-# Process the language data
 python src/data_loader.py language data/sample_score_new.csv
-
-# Process the telecom data
 python src/data_loader.py telecom data/telecom_churn.csv
 ```
 
-### 3. Run the Training Pipeline (Phase 2)
+### 3. Run the Training Pipeline
 
-Now, run the training script for both domains. This will create the `artifacts/` directory and populate it with the trained models and their performance metrics.
+Run the training script for both domains to create the model artifacts.
 
 ```bash
-# Train the language model
 python src/train.py language
-
-# Train the telecom model
 python src/train.py telecom
 ```
 
 ### 4. Run the Recommendation Engine (CLI)
 
-The command-line interface in `src/recommend.py` can be used for single predictions or batch processing.
+The command-line interface can be used for single predictions or batch processing.
 
 **Language Domain (Single Prediction):**
-Provide the path to a student's score file.
 ```bash
 python src/recommend.py language data/sample_score_new.csv
 ```
 
-**Telecom Domain (Single Prediction):**
-Provide a single customer's data as a JSON string.
-```bash
-python src/recommend.py telecom '{"gender": "Female", "SeniorCitizen": 0, "Partner": "No", "Dependents": "No", "tenure": 1, "PhoneService": "No", "MonthlyCharges": 29.85, "TotalCharges": "29.85"}'
-```
-
 **Telecom Domain (Batch Processing):**
-Provide the path to a CSV file of customers. A new file with recommendations will be created.
 ```bash
 python src/recommend.py telecom data/telecom_churn.csv
 ```
 
-### 5. Run the API Server
+### 5. Run the API Server and Interactive Dashboard
 
-To use the API, first start the web server. **Leave this terminal running.**
+To see the full application in action, you need to run two processes simultaneously in two separate terminals.
 
+**In your first terminal, start the API server:**
 ```bash
-# Make sure your virtual environment is active first:
-# source venv/bin/activate
-
+# Make sure your virtual environment is active
 uvicorn src.api:app --reload
 ```
-The server will be running at `http://127.0.0.1:8000`.
+The server will be running at `http://127.0.0.1:8000`. Leave this terminal open.
 
-In a **new terminal**, you can now send requests to the API, for example:
+**In your second terminal, start the dashboard:**
 ```bash
-# Example for the Telecom endpoint
-curl -X POST "http://127.0.0.1:8000/predict/telecom" \
--H "Content-Type: application/json" \
--d '{"gender": "Female", "SeniorCitizen": 0, "Partner": "No", "Dependents": "No", "tenure": 1, "PhoneService": "No", "MonthlyCharges": 29.85, "TotalCharges": "29.85"}'
+# Make sure your virtual environment is active
+streamlit run dashboard/app.py
 ```
+Your web browser should open a new tab with the interactive dashboard.
+
 ---
 
 ## Next Steps
 
-The next phases of the project will focus on building on top of these trained models:
-- **Phase 5:** Build an interactive dashboard for non-technical stakeholders.
+The final phase of the project will focus on packaging the project for presentation:
 - **Phase 6:** Create final narrative artifacts, including a walkthrough notebook and presentation slides. 

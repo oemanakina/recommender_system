@@ -7,7 +7,7 @@ import csv
 import joblib
 
 # Import recommendation logic from our existing script
-from src.recommend import recommend_telecom_retention, _analyze_language_errors, _find_best_exercises, LEGEND
+from src.recommend import recommend_telecom_retention, recommend_language_exercises
 
 # Setup basic logging and App
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -42,38 +42,17 @@ def predict_churn(customer: TelecomCustomer):
     recommendation = recommend_telecom_retention(customer.dict(by_alias=True))
     return {"recommendation": recommendation}
 
-def recommend_language_exercises_from_content(score_file_content: str):
-    """Generates a full recommendation report for the language learning domain from string content."""
-    # Use StringIO to treat the string content as a file
-    f = StringIO(score_file_content)
-    reader = csv.reader(f)
-    # Re-use the core logic, but with in-memory data instead of a file path
-    ideal_set, skill_weights = _analyze_language_errors(list(reader))
-    
-    skills_to_practice = [key for key, value in skill_weights.items() if value >= 0.4]
-
-    if not skills_to_practice:
-        return "Excellent work! No specific weaknesses found based on this test."
-
-    text = "Based on your results, you should focus on the following areas:\n"
-    for skill_key in skills_to_practice:
-        text += f"- {LEGEND[skill_key]}\n"
-    
-    best_exercises = _find_best_exercises(ideal_set)
-    text += "\nWe recommend the following practice sets:\n"
-    for exercise_id, vector in best_exercises.items():
-        text += f"\n- Exercise Set {exercise_id + 1}:\n"
-        text += "  Focuses on: "
-        covered_skills = [LEGEND[key] for i, key in enumerate(LEGEND) if vector[i] == 1]
-        text += ", ".join(covered_skills) + "."
-        
-    return text
-
 @app.post("/predict/language")
 def predict_language(input_data: LanguageInput):
     """Analyzes student score data (as a string) and recommends exercises."""
     logging.info("Received request for language prediction")
-    recommendation = recommend_language_exercises_from_content(input_data.score_file_content)
+    
+    # Use StringIO to treat the string content as a file-like object
+    f = StringIO(input_data.score_file_content)
+    reader = csv.reader(f)
+    score_rows = list(reader)
+    
+    recommendation = recommend_language_exercises(score_rows)
     return {"recommendation": recommendation}
 
 # To run this API:
