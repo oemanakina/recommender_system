@@ -1,11 +1,90 @@
 # End-to-End Dual-Domain Recommender System
 
-This project demonstrates the creation of an end-to-end machine learning pipeline, adaptable to multiple business domains. It currently implements a dual-recommender system for:
-1.  **Language Learning:** Analyzes a student's test errors to recommend specific practice exercises.
-2.  **Telecom Churn:** Predicts customer churn based on their account and usage data.
+This project is an end-to-end Machine Learning system built to demonstrate the complete lifecycle of developing and deploying a predictive model. The primary use case focuses on **predicting telecom customer churn**, a classic and high-value business problem.
 
-The project is designed to showcase best practices in data processing, model training, and project organization, aligning with the requirements for a modern AI/ML role.
+To showcase architectural flexibility, the same end-to-end principles are also applied to a secondary, unique domain: recommending exercises for language learners.
 
+Built entirely in **Python**, the project leverages core **data analysis libraries** like **pandas** for data manipulation and **scikit-learn** for its feature engineering and modeling pipelines. The system provides a practical, hands-on application of fundamental **machine learning concepts and algorithms**, covering the full lifecycle from data ingestion and validation to model deployment via an interactive dashboard and a REST API.
+
+---
+
+### Project Background & Evolution
+
+This project is a significant expansion and modernization of an original concept developed for the "Intro to AI" course (COMP3106) in the Computer Science department at Carleton University during the Fall 2022 semester.
+
+The initial project, created by Olga Manakina and Suchanya Limpakom, was a recommender system designed to generate a personalized learning path for French language students. It analyzed a user's score on a custom-designed test—which evaluated specific skills like grammar, vocabulary, and tenses—to predict their chances of achieving a certain proficiency level. Based on the results, it would then recommend specific exercise sets to address the student's weaknesses.
+
+This version of the project preserves that core idea but refactors it into a robust, end-to-end ML pipeline and demonstrates its adaptability by applying the same architectural principles to a new, industry-standard telecom churn problem.
+
+The original code and a more detailed description of the initial project can be found in the `legacy/` folder for historical context.
+
+---
+
+## Key Features
+
+The system is built with a modular, professional structure, incorporating the following features:
+
+*   **Validated Data Pipelines:** Raw data for each domain is processed through a deterministic pipeline that validates it against a pre-defined schema, ensuring data quality and reproducibility.
+*   **Modular Model Training:** Uses `scikit-learn` Pipelines to cleanly encapsulate feature engineering (e.g., `StandardScaler`, `OneHotEncoder`) and model training (`LogisticRegression` for churn). This creates reusable and easily understandable model artifacts.
+*   **Actionable Recommendation Engine:** A rule-based system translates the raw probabilistic outputs of the models into clear, human-readable business recommendations (e.g., churn risk categories, personalized study plans).
+*   **REST API for Real-Time Predictions:** A `FastAPI` server exposes the prediction logic through web endpoints, allowing for easy integration with other applications and services.
+*   **Interactive Dashboard:** A user-friendly web application built with `Streamlit` provides a front-end for non-technical users to interact with the models, input data, and visualize results.
+*   **Batch Processing CLI:** The system includes a command-line interface capable of processing large CSV files of customers at once, generating recommendations for each.
+
+---
+
+## Running the Application
+
+There are three ways to interact with this project: through the Command-Line Interface (CLI), the Interactive Dashboard, or the API.
+
+### 1. Initial Setup (Required for all methods)
+
+First, create the environment and install dependencies:
+```bash
+# Create and activate a Python virtual environment
+python3 -m venv venv
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+Next, run the data processing and model training scripts to generate the required artifacts:
+```bash
+# Process data
+python src/data_loader.py telecom data/telecom_churn.csv
+python src/data_loader.py language data/sample_score_new.csv
+
+# Train models
+python src/train.py telecom
+python src/train.py language
+```
+
+### 2. Using the Interactive Dashboard (Recommended)
+
+The dashboard is the easiest way to interact with the project. You must run the API server and the dashboard app simultaneously in two separate terminals.
+
+**Terminal 1: Start the API Server**
+```bash
+uvicorn src.api:app --reload
+```
+**Terminal 2: Start the Dashboard**
+```bash
+streamlit run dashboard/app.py
+```
+A new tab will open in your browser with the dashboard.
+
+### 3. Using the Command-Line Interface
+
+The CLI is useful for batch processing or single predictions.
+
+**Telecom Domain (Batch Processing):**
+```bash
+python src/recommend.py telecom data/telecom_churn.csv
+```
+**Language Domain (Single Prediction):**
+```bash
+python src/recommend.py language data/sample_score_new.csv
+```
 ---
 
 ## Project Structure
@@ -27,119 +106,23 @@ The repository is organized into a modular structure to ensure clarity and scala
 │   ├── schemas/       # Machine-readable data validation schemas
 │   ├── data_loader.py # Script for deterministic data ingestion and validation
 │   ├── train.py       # Script for model training and evaluation
-├── dashboard/         # (Future) Will contain the interactive Streamlit dashboard
+├── dashboard/         # Contains the interactive Streamlit dashboard
 ├── requirements.txt   # Project dependencies
 └── README.md          # This file
 ```
 
 ---
 
-## Current Progress (Phase 5 Complete)
+## Datasets Used
 
-We have successfully implemented the first six phases of our development plan:
+This project utilizes two distinct datasets to showcase the adaptability of the pipeline.
 
-### ✅ Phase 0: Project Scaffolding
-The project structure has been established, separating concerns like source code, data, and documentation. The original script has been moved to the `legacy` folder for historical reference.
+**1. Telecom Customer Churn**
+*   **Source:** [IBM Sample Datasets / Kaggle](https://www.kaggle.com/datasets/blastchar/telco-customer-churn)
+*   **Description:** A classic dataset containing information about 7,043 fictional telecom customers and their account details, services, and whether they churned in the last quarter.
+*   **Reason for Choice:** This is a standard benchmark for customer churn prediction and directly aligns the project with the telecom industry use case, making it relevant for roles in that sector.
 
-### ✅ Phase 1: Deterministic Data Pipelines
-A robust data ingestion pipeline has been created using `src/data_loader.py`. This script:
-- Reads a raw CSV dataset.
-- Validates its structure and values against a machine-readable schema defined in `src/schemas/`.
-- Processes and saves the clean data in the efficient Parquet format under `data/processed/`.
-- Generates a JSON log file to ensure reproducibility and track data provenance.
-
-### ✅ Phase 2: Feature Engineering & Baseline Models
-A flexible model training pipeline has been implemented in `src/train.py`. This script:
-- Loads the processed data for a specified domain (language or telecom).
-- Applies a domain-specific feature engineering pipeline.
-- Trains a baseline classifier.
-- Evaluates the model on a test set and saves the performance metrics and the trained model to the `artifacts/` directory.
-
-### ✅ Phase 3: Rule-Based Recommendation Engine
-A recommendation engine has been implemented in `src/recommend.py`. This script uses the trained models and business logic to translate raw predictions into actionable advice for both domains.
-
-### ✅ Phase 4: Programmatic Interfaces (API & CLI)
-The project's models and recommendation logic are now accessible through robust programmatic interfaces, including a REST API for real-time integration and an enhanced CLI for batch processing.
-
-### ✅ Phase 5: Interactive Dashboard
-An interactive web dashboard has been developed in `dashboard/app.py` using Streamlit. This provides a user-friendly interface for non-technical stakeholders to receive model-driven recommendations by communicating with the backend API.
-
----
-
-## How to Run the Project
-
-To get the project up and running and reproduce the results so far, follow these steps.
-
-### 1. Setup Environment
-
-First, create and activate a Python virtual environment.
-
-```bash
-# Create the environment (only needs to be done once)
-python3 -m venv venv
-
-# Activate the environment (needs to be done for each new terminal session)
-source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
-```
-
-Next, install all the required dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-### 2. Run the Data Pipeline
-
-Execute the data loader script for both domains.
-
-```bash
-python src/data_loader.py language data/sample_score_new.csv
-python src/data_loader.py telecom data/telecom_churn.csv
-```
-
-### 3. Run the Training Pipeline
-
-Run the training script for both domains to create the model artifacts.
-
-```bash
-python src/train.py language
-python src/train.py telecom
-```
-
-### 4. Run the Recommendation Engine (CLI)
-
-The command-line interface can be used for single predictions or batch processing.
-
-**Language Domain (Single Prediction):**
-```bash
-python src/recommend.py language data/sample_score_new.csv
-```
-
-**Telecom Domain (Batch Processing):**
-```bash
-python src/recommend.py telecom data/telecom_churn.csv
-```
-
-### 5. Run the API Server and Interactive Dashboard
-
-To see the full application in action, you need to run two processes simultaneously in two separate terminals.
-
-**In your first terminal, start the API server:**
-```bash
-# Make sure your virtual environment is active
-uvicorn src.api:app --reload
-```
-The server will be running at `http://127.0.0.1:8000`. Leave this terminal open.
-
-**In your second terminal, start the dashboard:**
-```bash
-# Make sure your virtual environment is active
-streamlit run dashboard/app.py
-```
-Your web browser should open a new tab with the interactive dashboard.
-
----
-
-## Next Steps
-
-The final phase of the project will focus on packaging the project for presentation:
-- **Phase 6:** Create final narrative artifacts, including a walkthrough notebook and presentation slides. 
+**2. French Language Learner Errors**
+*   **Source:** Original project data.
+*   **Description:** A custom dataset representing a student's scores on a 20-question French language test, mapping errors to specific linguistic skills.
+*   **Reason for Choice:** This was the initial dataset for the project. It serves to demonstrate the ability to refactor legacy code and shows how the core pipeline can be generalized from a niche educational problem to a common business problem. 
